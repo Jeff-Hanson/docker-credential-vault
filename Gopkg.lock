@@ -90,17 +90,6 @@
   version = "v1.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:876cc1d6cae6e34c70b50dcb539071b7e530e093d1296662ec1e0735f81a4df2"
-  name = "github.com/jaxxstorm/docker-credential-vault"
-  packages = [
-    "cmd",
-    "vault",
-  ]
-  pruneopts = "UT"
-  revision = "7124ddcbddbe2d697081941be5a972556f81dc84"
-
-[[projects]]
   digest = "1:79c55505b38424ce7dc479e8e0813db40245434db95a5d2e3390bfa24047b43c"
   name = "github.com/magiconair/properties"
   packages = ["."]
@@ -233,8 +222,6 @@
   input-imports = [
     "github.com/Sirupsen/logrus",
     "github.com/hashicorp/vault/api",
-    "github.com/jaxxstorm/docker-credential-vault/cmd",
-    "github.com/jaxxstorm/docker-credential-vault/vault",
     "github.com/mitchellh/mapstructure",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",

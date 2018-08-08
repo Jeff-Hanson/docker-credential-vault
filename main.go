@@ -20,7 +20,7 @@
 
 package main
 
-import "github.com/jaxxstorm/docker-credential-vault/cmd"
+import "github.com/Jeff-Hanson/docker-credential-vault/cmd"
 
 func main() {
 	cmd.Execute()

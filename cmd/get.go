@@ -31,9 +31,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	//"github.com/davecgh/go-spew/spew"
-
-	v "github.com/jaxxstorm/docker-credential-vault/vault"
+	v "github.com/Jeff-Hanson/docker-credential-vault/vault"
 )
 
 type DockerLoginCredentials struct {
@@ -54,6 +52,7 @@ var getCmd = &cobra.Command{
 		// if stdin can't be read, bomb
 		if err != nil {
 			fmt.Printf("Error reading stdin", err)
+			return
 		}
 
 		// create a base64 encoded url from stdin
@@ -67,22 +66,26 @@ var getCmd = &cobra.Command{
 
 		if err != nil {
 			fmt.Printf("Error creating vault client", err)
+			return
 		}
 
 		secret, err := client.Logical().Read("secret/" + url)
 
 		if err != nil {
 			fmt.Printf("Error reading vault creds", err)
+			return
 		}
 
 		if secret == nil {
 			fmt.Printf("Error retrieving secret", err)
+			return
 		}
 
 		var creds DockerLoginCredentials
 
 		if err := mapstructure.Decode(secret.Data, &creds); err != nil {
 			fmt.Printf("Error parsing vault response: ", err)
+			return
 		}
 
 		jsonCreds, _ := json.Marshal(creds)

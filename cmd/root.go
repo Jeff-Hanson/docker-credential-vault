@@ -23,6 +23,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -73,5 +74,14 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println("Error reading config file", err)
 	}
+
+	var err error
+	vaultHost  = viper.Get("vault").(string)
+	vaultPort, err = strconv.Atoi(viper.Get("port").(string))
+	if err != nil {
+		fmt.Println("Unable to convert port to int type. Value:", viper.Get("port").(string))
+		return
+	}
+	vaultToken = viper.Get("token").(string)
 
 }

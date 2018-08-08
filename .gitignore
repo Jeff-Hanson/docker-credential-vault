@@ -26,3 +26,5 @@ _testmain.go
 # mine
 vendor
 config.yaml
+
+docker-credential-vault
