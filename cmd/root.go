@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,6 +35,11 @@ var vaultHost string
 var vaultPort int
 var vaultToken string
 
+// Debug log handle
+var Debug *log.Logger
+
+var logFile *os.File
+
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "docker-credential-vault",
@@ -41,7 +47,9 @@ var RootCmd = &cobra.Command{
 	Long:  `Stores, retrieves and erases your docker registry credentials from Hashcorp Vault`,
 }
 
+// Execute the command 
 func Execute() {
+	defer logFile.Close()
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(-1)
@@ -49,6 +57,13 @@ func Execute() {
 }
 
 func init() {
+	logFile, err := os.OpenFile("/tmp/vault-creds.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("Failed to open log file", err)
+	}
+	Debug = log.New(logFile, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Debug.Println("Initializing...")
+
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.docker-credential-vault.yaml)")
 	RootCmd.PersistentFlags().StringVarP(&vaultHost, "vault", "v", "vault.service.discover", "vault host to authenticate against")
@@ -72,16 +87,20 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Error reading config file", err)
+		Debug.Println("Error reading config file", err)
 	}
+	
+	v := viper.GetViper()
+	Debug.Printf("Read in config: %v", v.AllSettings())
 
 	var err error
-	vaultHost  = viper.Get("vault").(string)
+	vaultHost = viper.Get("vault").(string)
 	vaultPort, err = strconv.Atoi(viper.Get("port").(string))
 	if err != nil {
 		fmt.Println("Unable to convert port to int type. Value:", viper.Get("port").(string))
 		return
 	}
 	vaultToken = viper.Get("token").(string)
+	Debug.Printf("Vault params: Host-%s Port-%v Token-%v", vaultHost, vaultPort, vaultToken)
 
 }

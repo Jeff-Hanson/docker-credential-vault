@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"bytes"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
@@ -47,16 +48,20 @@ var getCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// read in stdin
-		bytes, err := ioutil.ReadAll(os.Stdin)
+		urlBytes, err := ioutil.ReadAll(os.Stdin)
 
 		// if stdin can't be read, bomb
 		if err != nil {
-			fmt.Printf("Error reading stdin", err)
+			Debug.Println("Error reading stdin", err)
 			return
 		}
 
+		Debug.Printf("Input for Get: %s", string(bytes.TrimSpace(urlBytes)))
+
 		// create a base64 encoded url from stdin
-		url := b64.StdEncoding.EncodeToString(bytes)
+		url := b64.StdEncoding.EncodeToString(bytes.TrimSpace(urlBytes))
+
+		Debug.Printf("Base 64 of input: %s", url)
 
 		vaultHost = viper.GetString("vault")
 		vaultToken = viper.GetString("token")
@@ -65,31 +70,32 @@ var getCmd = &cobra.Command{
 		client, err := v.New(vaultToken, vaultHost, vaultPort)
 
 		if err != nil {
-			fmt.Printf("Error creating vault client", err)
+			Debug.Println("Error creating vault client", err)
 			return
 		}
 
 		secret, err := client.Logical().Read("secret/" + url)
 
 		if err != nil {
-			fmt.Printf("Error reading vault creds", err)
+			Debug.Println("Error reading vault creds", err)
 			return
 		}
 
 		if secret == nil {
-			fmt.Printf("Error retrieving secret", err)
+			Debug.Printf("Error reading secret from vault: %s / %s", string(bytes.TrimSpace(urlBytes)), url)
 			return
 		}
 
 		var creds DockerLoginCredentials
 
 		if err := mapstructure.Decode(secret.Data, &creds); err != nil {
-			fmt.Printf("Error parsing vault response: ", err)
+			Debug.Println("Error parsing vault response: ", err)
 			return
 		}
 
 		jsonCreds, _ := json.Marshal(creds)
 
+		Debug.Printf("Creds being returned: %s", string(jsonCreds))
 		fmt.Printf(string(jsonCreds))
 	},
 }
